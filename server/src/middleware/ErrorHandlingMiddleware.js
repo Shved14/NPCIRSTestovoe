@@ -1,7 +1,7 @@
 const ApiError = require('../error/ApiError')
-const {Validation, ForeignKeyConstraintError, ValidationError} = require('sequelize')
+const {ForeignKeyConstraintError, ValidationError} = require('sequelize')
 
-module.exports = function (err, req, res,next){
+module.exports = function (err, req, res){
     console.log(err)
     if(err instanceof ApiError){
         return  res.status(err.status).json({message: err.message})
