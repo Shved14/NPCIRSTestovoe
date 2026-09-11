@@ -13,17 +13,24 @@ class CustomersModel {
     }
 
 
-    async getbyId(id) {
+    async getById(id) {
         return Customers.findByPk(id)
     }
 
-    async gatAll({limit, offset}) {
+    async getAll({limit, offset}) {
         const rows = await sequelize.query(
-            'SELECT id, name, registered_on, credit_limit, ' +
-            'COUNT(*) OVER() AS total ' +
-            'FROM customers ' +
-            'ORDER BY id ' +
-            'LIMIT :limit OFFSET :offset',
+            `
+            SELECT
+                id,
+                name,
+                registered_on,
+                credit_limit,
+                COUNT(*) OVER() AS total
+            FROM customers
+            ORDER BY id ASC
+            LIMIT :limit
+            OFFSET :offset
+            `,
             {
                 replacements: {
                     limit,
@@ -47,10 +54,19 @@ class CustomersModel {
 
     async update(id, {name, registered_on, credit_limit}) {
         const rows = await sequelize.query(
-            'UPDATE customers' +
-            'SET name=:name, registered_on = :registered_on, credit_limit = :credit_limit, ' +
-            'WHERE id = :id RETURNING id, name,registered_on, credit_limit, ',
-
+            `
+            UPDATE customers
+            SET
+                name = :name,
+                registered_on = :registered_on,
+                credit_limit = :credit_limit
+            WHERE id = :id
+            RETURNING
+                id,
+                name,
+                registered_on,
+                credit_limit
+            `,
             {
                 replacements: {
                     id,
@@ -67,9 +83,11 @@ class CustomersModel {
 
     async delete(id) {
         const rows = await sequelize.query(
-            'DELETE ' +
-            'FROM customers' +
-            ' WHERE id=:id RETURNING id',
+            `
+            DELETE FROM customers
+            WHERE id = :id
+            RETURNING id
+            `,
             {
                 replacements: {
                     id,

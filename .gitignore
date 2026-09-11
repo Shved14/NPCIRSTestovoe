@@ -1,5 +1,6 @@
-node_modules
-package-lock.json
-package.json
-.gitignore
+node_modules/
 .env
+.env.*
+!.env.example
+
+.idea/

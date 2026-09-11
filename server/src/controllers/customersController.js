@@ -1,4 +1,5 @@
 const customersModel = require('../models/customersModel')
+const ApiError = require('../error/ApiError')
 
 class CustomersController {
     async create(req, res, next) {
@@ -44,9 +45,7 @@ class CustomersController {
             const customer = await customersModel.getById(id)
 
             if (!customer) {
-                return res.status(404).json({
-                    error: 'Customer not found',
-                })
+                return next(ApiError.notFound('Customer not found'))
             }
 
             return res.json(customer)
@@ -72,9 +71,7 @@ class CustomersController {
             })
 
             if (!customer) {
-                return res.status(404).json({
-                    error: 'Customer not found',
-                })
+                return next(ApiError.notFound('Customer not found'))
             }
 
             return res.json(customer)
@@ -87,12 +84,10 @@ class CustomersController {
         try {
             const { id } = req.params
 
-            const deleted = await customersModel.remove(id)
+            const deleted = await customersModel.delete(id)
 
             if (!deleted) {
-                return res.status(404).json({
-                    error: 'Customer not found',
-                })
+                return next(ApiError.notFound('Customer not found'))
             }
 
             return res.status(204).send()

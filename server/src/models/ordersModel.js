@@ -12,11 +12,29 @@ class OrdersModel {
                      quantity,
                  }) {
         const rows = await sequelize.query(
-            'INSERT ' +
-            'INTO orders(customers_id, title, order_date, amount, quantity)' +
-            'VALUES (:customers_id, :title, :order_date, :amount, :quantity)' +
-            'RETURNING id,customers_id, title, order_date, amount, quantity'
-            ,
+            `
+            INSERT INTO orders (
+                customer_id,
+                title,
+                order_date,
+                amount,
+                quantity
+            )
+            VALUES (
+                :customer_id,
+                :title,
+                :order_date,
+                :amount,
+                :quantity
+            )
+            RETURNING
+                id,
+                customer_id,
+                title,
+                order_date,
+                amount,
+                quantity
+            `,
             {
                 replacements: {
                     customer_id,
@@ -33,18 +51,31 @@ class OrdersModel {
     }
 
     async getAll({limit, offset}) {
-        return Orders.findAll({
+        const {rows,count} = await Orders.findAndCountAll({
             order: [['id', 'ASC']],
             limit,
             offset,
         })
+
+        return {
+            rows,
+            total: count,
+        }
     }
 
     async getById(id) {
         const rows = await sequelize.query(
-            'SELECT id, customers_id, title, order_date, amount, quantity' +
-            'FROM orders' +
-            'WHERE id=:id',
+            `
+            SELECT
+                id,
+                customer_id,
+                title,
+                order_date,
+                amount,
+                quantity
+            FROM orders
+            WHERE id = :id
+            `,
             {
                 replacements: {
                     id,

@@ -1,5 +1,3 @@
-
-ПЕРЕПЕЧАТАТЬ
 DROP TABLE IF EXISTS orders;
 DROP TABLE IF EXISTS customers;
 
@@ -28,7 +26,7 @@ CREATE TABLE orders (
     amount NUMERIC(10, 2) NOT NULL
         CHECK (amount >= 0),
 
-    quantity INTEGER NOT NULL DEFAULT 0
+    quantity INTEGER NOT NULL DEFAULT 1
         CHECK (quantity >= 0),
 
     CONSTRAINT fk_orders_customer

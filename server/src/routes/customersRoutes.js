@@ -1,10 +1,21 @@
 const Router = require('express')
 const router = new Router()
-const CustomerController = require('../controllers/customersController')
 
+const customersController = require('../controllers/customersController')
+const validationMiddleware = require('../middleware/validationMiddleware')
 
-router.post('/', CustomerController.create)
-router.get('/', CustomerController.getAll)
-router.get('/:id', CustomerController.getById)
-router.put('/:id', CustomerController.update)
-router.delete('/:id', CustomerController.delete)
+const {
+    customerIdValidation,
+    getAllCustomersValidation,
+    createCustomerValidation,
+    updateCustomerValidation,
+    }
+    = require('../validation/customersValidation')
+
+router.post('/', createCustomerValidation, validationMiddleware, customersController.create)
+router.get('/', getAllCustomersValidation, validationMiddleware, customersController.getAll)
+router.get('/:id', customerIdValidation, validationMiddleware, customersController.getById)
+router.put('/:id', updateCustomerValidation, validationMiddleware, customersController.update)
+router.delete('/:id', customerIdValidation, validationMiddleware, customersController.delete)
+
+module.exports = router

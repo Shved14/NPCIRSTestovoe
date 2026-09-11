@@ -1,4 +1,5 @@
 const ordersModel = require('../models/ordersModel')
+const ApiError = require('../error/ApiError')
 
 class OrdersController {
 
@@ -22,7 +23,7 @@ class OrdersController {
 
             return res.status(201).json(order)
         } catch (error) {
-            next(error)
+            return next(error)
         }
     }
 
@@ -38,7 +39,7 @@ class OrdersController {
 
             return res.json(orders)
         } catch (error) {
-            next(error)
+            return next(error)
         }
     }
 
@@ -49,14 +50,12 @@ class OrdersController {
             const order = await ordersModel.getById(id)
 
             if (!order) {
-                return res.status(404).json({
-                    error: 'Заказ не найден!',
-                })
+                return next(ApiError.notFound('Order not found'))
             }
 
             return res.json(order)
         } catch (error) {
-            next(error)
+            return next(error)
         }
     }
 
@@ -81,14 +80,12 @@ class OrdersController {
             })
 
             if (!order) {
-                return res.status(404).json({
-                    error: 'Заказ не найден',
-                })
+                return next(ApiError.notFound('Order not found'))
             }
 
             return res.json(order)
         } catch (error) {
-            next(error)
+            return next(error)
         }
     }
 
@@ -99,14 +96,12 @@ class OrdersController {
             const deleted = await ordersModel.delete(id)
 
             if (!deleted) {
-                return res.status(404).json({
-                    error: 'Заказ ене найден',
-                })
+                return next(ApiError.notFound('Order not found'))
             }
 
             return res.status(204).send()
         } catch (error) {
-            next(error)
+            return next(error)
         }
     }
 }
