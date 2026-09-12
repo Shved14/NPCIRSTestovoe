@@ -29,8 +29,15 @@ class OrdersController {
 
     async getAll(req, res, next) {
         try {
-            const limit = Number(req.query.limit) || 100
-            const offset = Number(req.query.offset) || 0
+            const limit =
+                req.query.limit !== undefined
+                    ? Number(req.query.limit)
+                    : 100
+
+            const offset =
+                req.query.offset !== undefined
+                    ? Number(req.query.offset)
+                    : 0
 
             const orders = await ordersModel.getAll({
                 limit,

@@ -32,6 +32,7 @@ const createCustomerValidation = [
 
     body('credit_limit')
         .isDecimal()
+        .isFloat({ min: 0 })
         .withMessage('Credit_limit должен быть числом'),
 ]
 
@@ -46,7 +47,8 @@ const updateCustomerValidation = [
         .withMessage('Name должен содержать от 1 до 30 символов'),
 
     body('registered_on')
-        .isISO8601()
+        .isISO8601({ strict: true })
+        .toDate()
         .withMessage('Registered_on должен быть корректной датой'),
 
     body('credit_limit')

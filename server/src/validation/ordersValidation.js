@@ -32,12 +32,15 @@ const createOrderValidation = [
         .withMessage('Title не должен превышать 200 символов'),
 
     body('order_date')
-        .isISO8601()
+        .isISO8601({ strict: true })
+        .toDate()
         .withMessage('Order_date должен быть корректной датой'),
 
     body('amount')
         .isDecimal()
-        .withMessage('Amount должен быть числом'),
+        .withMessage('Amount должен быть числом')
+        .isFloat({ min: 0 })
+        .withMessage('Amount не может быть отрицательным'),
 
     body('quantity')
         .isInt({ min: 1 })
@@ -65,6 +68,7 @@ const updateOrderValidation = [
 
     body('amount')
         .isDecimal()
+        .isFloat({ min: 0 })
         .withMessage('Amount должен быть числом'),
 
     body('quantity')
