@@ -33,7 +33,7 @@ const start = async () => {
             })
         }
 
-        process.on('SIGNIT', () => shutdown('SIGNIT'))
+        process.on('SIGINT', () => shutdown('SIGINT'))
         process.on('SIGTERM', () => shutdown('SIGTERM'))
 
 

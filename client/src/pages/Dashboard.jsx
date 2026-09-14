@@ -1,7 +1,15 @@
+import {useState} from 'react'
+
 import CustomersTable from '../components/CustomersTable'
 import OrdersTable from '../components/OrdersTable'
 
 function Dashboard() {
+    const [customersVersion, setCustomersVersion] = useState(0)
+
+    const handleCustomersChanged = () => {
+        setCustomersVersion((prev) => prev + 1)
+    }
+
     return (
         <div className="dashboard">
             <div className="dashboard-header">
@@ -16,7 +24,9 @@ function Dashboard() {
                     <h2>Покупатели</h2>
                 </div>
 
-                <CustomersTable />
+                <CustomersTable
+                    onCustomersChanged={handleCustomersChanged}
+                />
             </section>
 
             <section className="dashboard-section">
@@ -24,7 +34,9 @@ function Dashboard() {
                     <h2>Заказы</h2>
                 </div>
 
-                <OrdersTable />
+                <OrdersTable
+                    customersVersion={customersVersion}
+                />
             </section>
         </div>
     )

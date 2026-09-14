@@ -1,18 +1,30 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { AgGridReact } from 'ag-grid-react'
+import {
+    useCallback, useEffect, useMemo, useState,
+} from 'react'
+import {AgGridReact} from 'ag-grid-react'
 
 import api from '../api/api'
+import {getApiErrorMessage} from '../utils/apiError'
+import ConfirmModal from './ConfirmModal'
 
-import 'ag-grid-community/styles/ag-grid.css'
-import 'ag-grid-community/styles/ag-theme-quartz.css'
-
-function OrdersTable() {
-    const gridApiRef = useRef(null)
-
+function OrdersTable({customersVersion}) {
+    const [rowData, setRowData] = useState([])
     const [customers, setCustomers] = useState([])
+
+    const [loading, setLoading] = useState(true)
+    const [customersLoading, setCustomersLoading] = useState(true)
+
+    const [tableError, setTableError] = useState('')
+    const [customersError, setCustomersError] = useState('')
+
     const [modalOpen, setModalOpen] = useState(false)
     const [editingOrder, setEditingOrder] = useState(null)
+
+    const [deleteTarget, setDeleteTarget] = useState(null)
+
     const [saving, setSaving] = useState(false)
+    const [deletingId, setDeletingId] = useState(null)
+    const [formError, setFormError] = useState('')
 
     const [form, setForm] = useState({
         customer_id: '',
@@ -23,6 +35,9 @@ function OrdersTable() {
     })
 
     const loadCustomers = useCallback(async () => {
+        setCustomersLoading(true)
+        setCustomersError('')
+
         try {
             const response = await api.get('/customers', {
                 params: {
@@ -33,41 +48,53 @@ function OrdersTable() {
 
             setCustomers(response.data.rows)
         } catch (error) {
-            console.error(
-                'Ошибка загрузки покупателей:',
-                error,
+            console.error('Ошибка загрузки покупателей:', error)
+
+            setCustomersError(
+                getApiErrorMessage(
+                    error,
+                    'Не удалось загрузить покупателей',
+                ),
             )
+        } finally {
+            setCustomersLoading(false)
         }
     }, [])
 
     const loadOrders = useCallback(async () => {
+        setLoading(true)
+        setTableError('')
+
         try {
             const response = await api.get('/orders', {
                 params: {
-                    limit: 15,
+                    limit: 100,
                     offset: 0,
                 },
             })
 
-            if (gridApiRef.current) {
-                gridApiRef.current.setGridOption(
-                    'rowData',
-                    response.data.rows,
-                )
-            }
+            setRowData(response.data.rows)
         } catch (error) {
-            console.error(
-                'Ошибка загрузки заказов:',
-                error,
+            console.error('Ошибка загрузки заказов:', error)
+
+            setTableError(
+                getApiErrorMessage(
+                    error,
+                    'Не удалось загрузить заказы',
+                ),
             )
+        } finally {
+            setLoading(false)
         }
     }, [])
 
     useEffect(() => {
         loadCustomers()
-    }, [loadCustomers])
+        loadOrders()
+    }, [loadCustomers, loadOrders, customersVersion])
 
     const handleEdit = useCallback((order) => {
+        setFormError('')
         setEditingOrder(order)
 
         setForm({
@@ -81,110 +108,111 @@ function OrdersTable() {
         setModalOpen(true)
     }, [])
 
-    const handleDelete = useCallback(
-        async (order) => {
-            const confirmed = window.confirm(
-                `Удалить заказ №${order.id}?`,
-            )
+    const handleDelete = useCallback((order) => {
+        setDeleteTarget(order)
+    }, [])
 
-            if (!confirmed) return
+    const confirmDelete = useCallback(async () => {
+        if (!deleteTarget) return
 
-            try {
-                await api.delete(`/orders/${order.id}`)
+        setTableError('')
+        setDeletingId(deleteTarget.id)
 
-                await loadOrders()
-            } catch (error) {
-                console.error(
-                    'Ошибка удаления заказа:',
-                    error,
-                )
-
-                const message =
-                    error.response?.data?.message ||
-                    'Не удалось удалить заказ'
-
-                alert(message)
-            }
-        },
-        [loadOrders],
-    )
-
-    const columnDefs = useMemo(
-        () => [
-            {
-                field: 'id',
-                headerName: 'ID',
-                width: 80,
-            },
-            {
-                field: 'customer_id',
-                headerName: 'ID покупателя',
-                width: 130,
-            },
-            {
-                field: 'title',
-                headerName: 'Название',
-                flex: 1,
-                minWidth: 180,
-            },
-            {
-                field: 'order_date',
-                headerName: 'Дата заказа',
-                width: 140,
-            },
-            {
-                field: 'amount',
-                headerName: 'Сумма',
-                width: 120,
-            },
-            {
-                field: 'quantity',
-                headerName: 'Количество',
-                width: 120,
-            },
-            {
-                headerName: 'Действия',
-                width: 190,
-                sortable: false,
-                filter: false,
-                cellRenderer: (params) => (
-                    <div className="table-actions">
-                        <button
-                            type="button"
-                            className="table-button edit"
-                            onClick={() =>
-                                handleEdit(params.data)
-                            }
-                        >
-                            Изменить
-                        </button>
-
-                        <button
-                            type="button"
-                            className="table-button delete"
-                            onClick={() =>
-                                handleDelete(params.data)
-                            }
-                        >
-                            Удалить
-                        </button>
-                    </div>
-                ),
-            },
-        ],
-        [handleEdit, handleDelete],
-    )
-
-    const onGridReady = useCallback(
-        async (params) => {
-            gridApiRef.current = params.api
+        try {
+            await api.delete(`/orders/${deleteTarget.id}`)
 
             await loadOrders()
+
+            setDeleteTarget(null)
+        } catch (error) {
+            console.error('Ошибка удаления заказа:', error)
+
+            setTableError(
+                getApiErrorMessage(
+                    error,
+                    'Не удалось удалить заказ',
+                ),
+            )
+        } finally {
+            setDeletingId(null)
+        }
+    }, [deleteTarget, loadOrders])
+
+    const columnDefs = useMemo(() => [{
+        field: 'id',
+        headerName: 'ID',
+        width: 80,
+    }, {
+        field: 'customer_id',
+        headerName: 'Покупатель',
+        width: 180,
+        valueGetter: (params) => {
+            const customer = customers.find(
+                (item) => item.id === params.data.customer_id,
+            )
+
+            return customer?.name || `ID ${params.data.customer_id}`
         },
-        [loadOrders],
-    )
+    }, {
+        field: 'title',
+        headerName: 'Название',
+        flex: 1,
+        minWidth: 180,
+    }, {
+        field: 'order_date',
+        headerName: 'Дата заказа',
+        width: 140,
+    }, {
+        field: 'amount',
+        headerName: 'Сумма',
+        width: 120,
+    }, {
+        field: 'quantity',
+        headerName: 'Количество',
+        width: 120,
+    }, {
+        headerName: 'Действия',
+        width: 190,
+        sortable: false,
+        filter: false,
+        cellRenderer: (params) => {
+            const isDeleting = deletingId === params.data?.id
+
+            return (
+                <div className="table-actions">
+                    <button
+                        type="button"
+                        className="table-button edit"
+                        onClick={() => handleEdit(params.data)}
+                        disabled={isDeleting}
+                    >
+                        Изменить
+                    </button>
+
+                    <button
+                        type="button"
+                        className="table-button delete"
+                        onClick={() => handleDelete(params.data)}
+                        disabled={isDeleting}
+                    >
+                        {isDeleting ? 'Удаление...' : 'Удалить'}
+                    </button>
+                </div>
+            )
+        },
+    }], [
+        handleEdit,
+        handleDelete,
+        deletingId,
+        customers,
+    ])
 
     const openCreateModal = () => {
+        if (customers.length === 0) {
+            return
+        }
+
+        setFormError('')
         setEditingOrder(null)
 
         setForm({
@@ -203,20 +231,27 @@ function OrdersTable() {
 
         setModalOpen(false)
         setEditingOrder(null)
+        setFormError('')
     }
 
     const handleChange = (event) => {
-        const { name, value } = event.target
+        const {
+            name,
+            value,
+        } = event.target
 
         setForm((prev) => ({
             ...prev,
             [name]: value,
         }))
+
+        setFormError('')
     }
 
     const handleSubmit = async (event) => {
         event.preventDefault()
 
+        setFormError('')
         setSaving(true)
 
         try {
@@ -237,20 +272,19 @@ function OrdersTable() {
                 await api.post('/orders', payload)
             }
 
-            closeModal()
+            setModalOpen(false)
+            setEditingOrder(null)
 
             await loadOrders()
         } catch (error) {
-            console.error(
-                'Ошибка сохранения заказа:',
-                error,
+            console.error('Ошибка сохранения заказа:', error)
+
+            setFormError(
+                getApiErrorMessage(
+                    error,
+                    'Не удалось сохранить заказ',
+                ),
             )
-
-            const message =
-                error.response?.data?.message ||
-                'Не удалось сохранить заказ'
-
-            alert(message)
         } finally {
             setSaving(false)
         }
@@ -263,24 +297,54 @@ function OrdersTable() {
                     type="button"
                     className="primary-button"
                     onClick={openCreateModal}
+                    disabled={
+                        loading ||
+                        customersLoading ||
+                        customers.length === 0
+                    }
                 >
                     + Добавить заказ
                 </button>
             </div>
 
-            <div
-                className="ag-theme-quartz orders-grid"
-            >
-                <AgGridReact
-                    columnDefs={columnDefs}
-                    onGridReady={onGridReady}
-                    defaultColDef={{
-                        sortable: true,
-                        resizable: true,
-                    }}
-                    domLayout="autoHeight"
-                />
-            </div>
+            {tableError && (
+                <div className="table-error">
+                    <span>{tableError}</span>
+
+                    <button
+                        type="button"
+                        onClick={loadOrders}
+                    >
+                        Повторить
+                    </button>
+                </div>
+            )}
+
+            {loading && (
+                <div className="table-status">
+                    Загрузка заказов...
+                </div>
+            )}
+
+            {!loading && !tableError && rowData.length === 0 && (
+                <div className="table-status">
+                    Заказы отсутствуют
+                </div>
+            )}
+
+            {!loading && !tableError && rowData.length > 0 && (
+                <div className="ag-theme-quartz orders-grid">
+                    <AgGridReact
+                        columnDefs={columnDefs}
+                        rowData={rowData}
+                        defaultColDef={{
+                            sortable: true,
+                            resizable: true,
+                        }}
+                        domLayout="autoHeight"
+                    />
+                </div>
+            )}
 
             {modalOpen && (
                 <div className="modal-overlay">
@@ -296,10 +360,31 @@ function OrdersTable() {
                                 type="button"
                                 className="modal-close"
                                 onClick={closeModal}
+                                disabled={saving}
                             >
                                 ×
                             </button>
                         </div>
+
+                        {formError && (
+                            <div className="form-error">
+                                {formError}
+                            </div>
+                        )}
+
+                        {customersError && (
+                            <div className="form-error">
+                                {customersError}
+
+                                <button
+                                    type="button"
+                                    className="retry-button"
+                                    onClick={loadCustomers}
+                                >
+                                    Повторить
+                                </button>
+                            </div>
+                        )}
 
                         <form
                             className="order-form"
@@ -313,9 +398,16 @@ function OrdersTable() {
                                     value={form.customer_id}
                                     onChange={handleChange}
                                     required
+                                    disabled={
+                                        saving ||
+                                        customersLoading ||
+                                        customers.length === 0
+                                    }
                                 >
                                     <option value="">
-                                        Выберите покупателя
+                                        {customersLoading
+                                            ? 'Загрузка покупателей...'
+                                            : 'Выберите покупателя'}
                                     </option>
 
                                     {customers.map((customer) => (
@@ -339,6 +431,7 @@ function OrdersTable() {
                                     onChange={handleChange}
                                     maxLength={200}
                                     required
+                                    disabled={saving}
                                 />
                             </label>
 
@@ -351,6 +444,7 @@ function OrdersTable() {
                                     value={form.order_date}
                                     onChange={handleChange}
                                     required
+                                    disabled={saving}
                                 />
                             </label>
 
@@ -365,6 +459,7 @@ function OrdersTable() {
                                     min="0"
                                     step="0.01"
                                     required
+                                    disabled={saving}
                                 />
                             </label>
 
@@ -379,6 +474,7 @@ function OrdersTable() {
                                     min="1"
                                     step="1"
                                     required
+                                    disabled={saving}
                                 />
                             </label>
 
@@ -395,7 +491,11 @@ function OrdersTable() {
                                 <button
                                     type="submit"
                                     className="primary-button"
-                                    disabled={saving}
+                                    disabled={
+                                        saving ||
+                                        customersLoading ||
+                                        customers.length === 0
+                                    }
                                 >
                                     {saving
                                         ? 'Сохранение...'
@@ -406,6 +506,19 @@ function OrdersTable() {
                     </div>
                 </div>
             )}
+
+            <ConfirmModal
+                open={Boolean(deleteTarget)}
+                title="Удалить заказ?"
+                message={
+                    deleteTarget
+                        ? `Вы действительно хотите удалить заказ №${deleteTarget.id}?`
+                        : ''
+                }
+                loading={deletingId !== null}
+                onCancel={() => setDeleteTarget(null)}
+                onConfirm={confirmDelete}
+            />
         </>
     )
 }

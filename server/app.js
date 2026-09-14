@@ -5,7 +5,7 @@ const rateLimit = require('express-rate-limit')
 
 const routes = require('./src/routes')
 const errorHandlingMiddleware = require('./src/middleware/ErrorHandlingMiddleware')
-const notFoundMiddleware = require('./src/middleware/ErrorHandlingMiddleware')
+const notFoundMiddleware = require('./src/middleware/notFoundMiddleware')
 
 const apiLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,

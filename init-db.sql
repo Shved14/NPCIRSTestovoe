@@ -27,7 +27,7 @@ CREATE TABLE orders (
         CHECK (amount >= 0),
 
     quantity INTEGER NOT NULL DEFAULT 1
-        CHECK (quantity >= 0),
+        CHECK (quantity > 0),
 
     CONSTRAINT fk_orders_customer
         FOREIGN KEY (customer_id)
