@@ -27,7 +27,7 @@ function CustomersTable({onCustomersChanged}) {
     const [formError, setFormError] = useState('')
 
     const [form, setForm] = useState({
-        name: '', registered_on: '', credit_limit: '',
+        name: '', registered_on: '', credit_limit: '', priority: 1,
     })
 
     const refreshTable = useCallback(() => {
@@ -45,6 +45,7 @@ function CustomersTable({onCustomersChanged}) {
             name: customer.name || '',
             registered_on: customer.registered_on || '',
             credit_limit: String(customer.credit_limit ?? ''),
+            priority: customer.priority,
         })
 
         setModalOpen(true)
@@ -57,16 +58,17 @@ function CustomersTable({onCustomersChanged}) {
     const confirmDelete = useCallback(async () => {
         if (!deleteTarget) return
 
+        const customerId = deleteTarget.id
+
         setTableError('')
-        setDeletingId(deleteTarget.id)
+        setDeleteTarget(null)
+        setDeletingId(customerId)
 
         try {
-            await api.delete(`/customers/${deleteTarget.id}`)
+            await api.delete(`/customers/${customerId}`)
 
             onCustomersChanged()
             refreshTable()
-
-            setDeleteTarget(null)
         } catch (error) {
             console.error('Ошибка удаления покупателя:', error)
 
@@ -84,6 +86,8 @@ function CustomersTable({onCustomersChanged}) {
         field: 'registered_on', headerName: 'Дата регистрации', width: 180,
     }, {
         field: 'credit_limit', headerName: 'Кредитный лимит', width: 180,
+    }, {
+        field: 'priority', headerName: 'Priority',
     }, {
         headerName: 'Действия', width: 190, sortable: false, filter: false, cellRenderer: (params) => {
             const isDeleting = deletingId === params.data?.id
@@ -156,7 +160,7 @@ function CustomersTable({onCustomersChanged}) {
         setEditingCustomer(null)
 
         setForm({
-            name: '', registered_on: '', credit_limit: '',
+            name: '', registered_on: '', credit_limit: '', priority: 1,
         })
 
         setModalOpen(true)
@@ -188,7 +192,10 @@ function CustomersTable({onCustomersChanged}) {
 
         try {
             const payload = {
-                name: form.name.trim(), registered_on: form.registered_on, credit_limit: Number(form.credit_limit),
+                name: form.name.trim(),
+                registered_on: form.registered_on,
+                credit_limit: Number(form.credit_limit),
+                priority: Number(form.priority),
             }
 
             if (editingCustomer) {
@@ -331,6 +338,21 @@ function CustomersTable({onCustomersChanged}) {
                             onChange={handleChange}
                             min="0"
                             step="0.01"
+                            required
+                            disabled={saving}
+                        />
+                    </label>
+
+                    <label>
+                        Priority
+
+                        <input
+                            type="number"
+                            name="priority"
+                            value={form.priority}
+                            onChange={handleChange}
+                            min="1"
+                            step="1"
                             required
                             disabled={saving}
                         />

@@ -8,12 +8,14 @@ class CustomersController {
                 name,
                 registered_on,
                 credit_limit,
+                priority,
             } = req.body
 
             const customer = await customersModel.create({
                 name,
                 registered_on,
                 credit_limit,
+                priority,
             })
 
             return res.status(201).json(customer)
@@ -69,12 +71,14 @@ class CustomersController {
                 name,
                 registered_on,
                 credit_limit,
+                priority,
             } = req.body
 
             const customer = await customersModel.update(id, {
                 name,
                 registered_on,
                 credit_limit,
+                priority,
             })
 
             if (!customer) {

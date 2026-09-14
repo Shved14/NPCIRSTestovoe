@@ -14,16 +14,6 @@ module.exports = function errorHandlingMiddleware(err, req, res, next) {
         return res.status(err.status).json(response)
     }
 
-    if (err instanceof ValidationError) {
-        return res.status(400).json({
-            message: 'Ошибка валидации данных',
-            details: err.errors.map((error) => ({
-                field: error.path,
-                message: error.message,
-            })),
-        })
-    }
-
     if (err instanceof UniqueConstraintError) {
         return res.status(409).json({
             message: 'Записи с такими данными не существует',
@@ -31,10 +21,7 @@ module.exports = function errorHandlingMiddleware(err, req, res, next) {
     }
 
     if (err instanceof ForeignKeyConstraintError) {
-        if (
-            req.method === 'DELETE'
-            && req.originalUrl.startsWith('/api/customers/')
-        ) {
+        if (req.method === 'DELETE' && req.originalUrl.startsWith('/api/customers/')) {
             return res.status(409).json({
                 message: 'Нельзя удалить покупателя, пока у него есть заказы',
             })
@@ -45,22 +32,30 @@ module.exports = function errorHandlingMiddleware(err, req, res, next) {
         })
     }
 
-if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
-    return res.status(400).json({
-        message: 'Некорректный Json',
-    })
-}
-if (err instanceof DatabaseError) {
-    console.error('Ошибка БД:', err)
+    if (err instanceof ValidationError) {
+        return res.status(400).json({
+            message: 'Ошибка валидации данных', details: err.errors.map((error) => ({
+                field: error.path, message: error.message,
+            })),
+        })
+    }
+
+    if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
+        return res.status(400).json({
+            message: 'Некорректный Json',
+        })
+    }
+    if (err instanceof DatabaseError) {
+        console.error('Ошибка БД:', err)
+
+        return res.status(500).json({
+            message: "Ошибка БД"
+        })
+    }
+
+    console.error('Непредвиденная ошибка:', err)
 
     return res.status(500).json({
-        message: "Ошибка БД"
+        message: "Внутренняя  ошибка сервера!"
     })
-}
-
-console.error('Непредвиденная ошибка:', err)
-
-return res.status(500).json({
-    message: "Внутренняя  ошибка сервера!"
-})
 }

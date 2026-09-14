@@ -1,11 +1,14 @@
-import {
-    useCallback, useEffect, useMemo, useState,
-} from 'react'
+import {useCallback, useEffect, useMemo, useState,} from 'react'
 import {AgGridReact} from 'ag-grid-react'
+import {ClientSideRowModelModule, ModuleRegistry,} from 'ag-grid-community'
+
+import {getApiErrorMessage} from '../utils/apiError'
+
+ModuleRegistry.registerModules([ClientSideRowModelModule])
 
 import api from '../api/api'
-import {getApiErrorMessage} from '../utils/apiError'
 import ConfirmModal from './ConfirmModal'
+
 
 function OrdersTable({customersVersion}) {
     const [rowData, setRowData] = useState([])
@@ -27,11 +30,7 @@ function OrdersTable({customersVersion}) {
     const [formError, setFormError] = useState('')
 
     const [form, setForm] = useState({
-        customer_id: '',
-        title: '',
-        order_date: '',
-        amount: '',
-        quantity: '',
+        customer_id: '', title: '', order_date: '', amount: '', quantity: '',
     })
 
     const loadCustomers = useCallback(async () => {
@@ -41,8 +40,7 @@ function OrdersTable({customersVersion}) {
         try {
             const response = await api.get('/customers', {
                 params: {
-                    limit: 100,
-                    offset: 0,
+                    limit: 100, offset: 0,
                 },
             })
 
@@ -50,12 +48,7 @@ function OrdersTable({customersVersion}) {
         } catch (error) {
             console.error('Ошибка загрузки покупателей:', error)
 
-            setCustomersError(
-                getApiErrorMessage(
-                    error,
-                    'Не удалось загрузить покупателей',
-                ),
-            )
+            setCustomersError(getApiErrorMessage(error, 'Не удалось загрузить покупателей',),)
         } finally {
             setCustomersLoading(false)
         }
@@ -68,8 +61,7 @@ function OrdersTable({customersVersion}) {
         try {
             const response = await api.get('/orders', {
                 params: {
-                    limit: 100,
-                    offset: 0,
+                    limit: 100, offset: 0,
                 },
             })
 
@@ -77,12 +69,7 @@ function OrdersTable({customersVersion}) {
         } catch (error) {
             console.error('Ошибка загрузки заказов:', error)
 
-            setTableError(
-                getApiErrorMessage(
-                    error,
-                    'Не удалось загрузить заказы',
-                ),
-            )
+            setTableError(getApiErrorMessage(error, 'Не удалось загрузить заказы',),)
         } finally {
             setLoading(false)
         }
@@ -127,85 +114,53 @@ function OrdersTable({customersVersion}) {
         } catch (error) {
             console.error('Ошибка удаления заказа:', error)
 
-            setTableError(
-                getApiErrorMessage(
-                    error,
-                    'Не удалось удалить заказ',
-                ),
-            )
+            setTableError(getApiErrorMessage(error, 'Не удалось удалить заказ',),)
         } finally {
             setDeletingId(null)
         }
     }, [deleteTarget, loadOrders])
 
     const columnDefs = useMemo(() => [{
-        field: 'id',
-        headerName: 'ID',
-        width: 80,
+        field: 'id', headerName: 'ID', width: 80,
     }, {
-        field: 'customer_id',
-        headerName: 'Покупатель',
-        width: 180,
-        valueGetter: (params) => {
-            const customer = customers.find(
-                (item) => item.id === params.data.customer_id,
-            )
+        field: 'customer_id', headerName: 'Покупатель', width: 180, valueGetter: (params) => {
+            const customer = customers.find((item) => item.id === params.data.customer_id,)
 
             return customer?.name || `ID ${params.data.customer_id}`
         },
     }, {
-        field: 'title',
-        headerName: 'Название',
-        flex: 1,
-        minWidth: 180,
+        field: 'title', headerName: 'Название', flex: 1, minWidth: 180,
     }, {
-        field: 'order_date',
-        headerName: 'Дата заказа',
-        width: 140,
+        field: 'order_date', headerName: 'Дата заказа', width: 140,
     }, {
-        field: 'amount',
-        headerName: 'Сумма',
-        width: 120,
+        field: 'amount', headerName: 'Сумма', width: 120,
     }, {
-        field: 'quantity',
-        headerName: 'Количество',
-        width: 120,
+        field: 'quantity', headerName: 'Количество', width: 120,
     }, {
-        headerName: 'Действия',
-        width: 190,
-        sortable: false,
-        filter: false,
-        cellRenderer: (params) => {
+        headerName: 'Действия', width: 190, sortable: false, filter: false, cellRenderer: (params) => {
             const isDeleting = deletingId === params.data?.id
 
-            return (
-                <div className="table-actions">
-                    <button
-                        type="button"
-                        className="table-button edit"
-                        onClick={() => handleEdit(params.data)}
-                        disabled={isDeleting}
-                    >
-                        Изменить
-                    </button>
+            return (<div className="table-actions">
+                <button
+                    type="button"
+                    className="table-button edit"
+                    onClick={() => handleEdit(params.data)}
+                    disabled={isDeleting}
+                >
+                    Изменить
+                </button>
 
-                    <button
-                        type="button"
-                        className="table-button delete"
-                        onClick={() => handleDelete(params.data)}
-                        disabled={isDeleting}
-                    >
-                        {isDeleting ? 'Удаление...' : 'Удалить'}
-                    </button>
-                </div>
-            )
+                <button
+                    type="button"
+                    className="table-button delete"
+                    onClick={() => handleDelete(params.data)}
+                    disabled={isDeleting}
+                >
+                    {isDeleting ? 'Удаление...' : 'Удалить'}
+                </button>
+            </div>)
         },
-    }], [
-        handleEdit,
-        handleDelete,
-        deletingId,
-        customers,
-    ])
+    }], [handleEdit, handleDelete, deletingId, customers,])
 
     const openCreateModal = () => {
         if (customers.length === 0) {
@@ -216,11 +171,7 @@ function OrdersTable({customersVersion}) {
         setEditingOrder(null)
 
         setForm({
-            customer_id: '',
-            title: '',
-            order_date: '',
-            amount: '',
-            quantity: '',
+            customer_id: '', title: '', order_date: '', amount: '', quantity: '',
         })
 
         setModalOpen(true)
@@ -236,13 +187,11 @@ function OrdersTable({customersVersion}) {
 
     const handleChange = (event) => {
         const {
-            name,
-            value,
+            name, value,
         } = event.target
 
         setForm((prev) => ({
-            ...prev,
-            [name]: value,
+            ...prev, [name]: value,
         }))
 
         setFormError('')
@@ -264,10 +213,7 @@ function OrdersTable({customersVersion}) {
             }
 
             if (editingOrder) {
-                await api.put(
-                    `/orders/${editingOrder.id}`,
-                    payload,
-                )
+                await api.put(`/orders/${editingOrder.id}`, payload,)
             } else {
                 await api.post('/orders', payload)
             }
@@ -279,248 +225,202 @@ function OrdersTable({customersVersion}) {
         } catch (error) {
             console.error('Ошибка сохранения заказа:', error)
 
-            setFormError(
-                getApiErrorMessage(
-                    error,
-                    'Не удалось сохранить заказ',
-                ),
-            )
+            setFormError(getApiErrorMessage(error, 'Не удалось сохранить заказ',),)
         } finally {
             setSaving(false)
         }
     }
 
-    return (
-        <>
-            <div className="table-toolbar">
-                <button
-                    type="button"
-                    className="primary-button"
-                    onClick={openCreateModal}
-                    disabled={
-                        loading ||
-                        customersLoading ||
-                        customers.length === 0
-                    }
-                >
-                    + Добавить заказ
-                </button>
-            </div>
+    return (<>
+        <div className="table-toolbar">
+            <button
+                type="button"
+                className="primary-button"
+                onClick={openCreateModal}
+                disabled={loading || customersLoading || customers.length === 0}
+            >
+                + Добавить заказ
+            </button>
+        </div>
 
-            {tableError && (
-                <div className="table-error">
-                    <span>{tableError}</span>
+        {tableError && (<div className="table-error">
+            <span>{tableError}</span>
+
+            <button
+                type="button"
+                onClick={loadOrders}
+            >
+                Повторить
+            </button>
+        </div>)}
+
+        {loading && (<div className="table-status">
+            Загрузка заказов...
+        </div>)}
+
+        {!loading && !tableError && rowData.length === 0 && (<div className="table-status">
+            Заказы отсутствуют
+        </div>)}
+
+        {!loading && !tableError && rowData.length > 0 && (<div className="ag-theme-quartz orders-grid">
+            <AgGridReact
+                columnDefs={columnDefs}
+                rowData={rowData}
+                defaultColDef={{
+                    sortable: true, resizable: true,
+                }}
+                domLayout="autoHeight"
+            />
+        </div>)}
+
+        {modalOpen && (<div className="modal-overlay">
+            <div className="modal">
+                <div className="modal-header">
+                    <h3>
+                        {editingOrder ? 'Редактировать заказ' : 'Добавить заказ'}
+                    </h3>
 
                     <button
                         type="button"
-                        onClick={loadOrders}
+                        className="modal-close"
+                        onClick={closeModal}
+                        disabled={saving}
+                    >
+                        ×
+                    </button>
+                </div>
+
+                {formError && (<div className="form-error">
+                    {formError}
+                </div>)}
+
+                {customersError && (<div className="form-error">
+                    {customersError}
+
+                    <button
+                        type="button"
+                        className="retry-button"
+                        onClick={loadCustomers}
                     >
                         Повторить
                     </button>
-                </div>
-            )}
+                </div>)}
 
-            {loading && (
-                <div className="table-status">
-                    Загрузка заказов...
-                </div>
-            )}
+                <form
+                    className="order-form"
+                    onSubmit={handleSubmit}
+                >
+                    <label>
+                        Покупатель
 
-            {!loading && !tableError && rowData.length === 0 && (
-                <div className="table-status">
-                    Заказы отсутствуют
-                </div>
-            )}
-
-            {!loading && !tableError && rowData.length > 0 && (
-                <div className="ag-theme-quartz orders-grid">
-                    <AgGridReact
-                        columnDefs={columnDefs}
-                        rowData={rowData}
-                        defaultColDef={{
-                            sortable: true,
-                            resizable: true,
-                        }}
-                        domLayout="autoHeight"
-                    />
-                </div>
-            )}
-
-            {modalOpen && (
-                <div className="modal-overlay">
-                    <div className="modal">
-                        <div className="modal-header">
-                            <h3>
-                                {editingOrder
-                                    ? 'Редактировать заказ'
-                                    : 'Добавить заказ'}
-                            </h3>
-
-                            <button
-                                type="button"
-                                className="modal-close"
-                                onClick={closeModal}
-                                disabled={saving}
-                            >
-                                ×
-                            </button>
-                        </div>
-
-                        {formError && (
-                            <div className="form-error">
-                                {formError}
-                            </div>
-                        )}
-
-                        {customersError && (
-                            <div className="form-error">
-                                {customersError}
-
-                                <button
-                                    type="button"
-                                    className="retry-button"
-                                    onClick={loadCustomers}
-                                >
-                                    Повторить
-                                </button>
-                            </div>
-                        )}
-
-                        <form
-                            className="order-form"
-                            onSubmit={handleSubmit}
+                        <select
+                            name="customer_id"
+                            value={form.customer_id}
+                            onChange={handleChange}
+                            required
+                            disabled={saving || customersLoading || customers.length === 0}
                         >
-                            <label>
-                                Покупатель
+                            <option value="">
+                                {customersLoading ? 'Загрузка покупателей...' : 'Выберите покупателя'}
+                            </option>
 
-                                <select
-                                    name="customer_id"
-                                    value={form.customer_id}
-                                    onChange={handleChange}
-                                    required
-                                    disabled={
-                                        saving ||
-                                        customersLoading ||
-                                        customers.length === 0
-                                    }
-                                >
-                                    <option value="">
-                                        {customersLoading
-                                            ? 'Загрузка покупателей...'
-                                            : 'Выберите покупателя'}
-                                    </option>
+                            {customers.map((customer) => (<option
+                                key={customer.id}
+                                value={customer.id}
+                            >
+                                {customer.name}
+                            </option>))}
+                        </select>
+                    </label>
 
-                                    {customers.map((customer) => (
-                                        <option
-                                            key={customer.id}
-                                            value={customer.id}
-                                        >
-                                            {customer.name}
-                                        </option>
-                                    ))}
-                                </select>
-                            </label>
+                    <label>
+                        Название
 
-                            <label>
-                                Название
+                        <input
+                            type="text"
+                            name="title"
+                            value={form.title}
+                            onChange={handleChange}
+                            maxLength={200}
+                            required
+                            disabled={saving}
+                        />
+                    </label>
 
-                                <input
-                                    type="text"
-                                    name="title"
-                                    value={form.title}
-                                    onChange={handleChange}
-                                    maxLength={200}
-                                    required
-                                    disabled={saving}
-                                />
-                            </label>
+                    <label>
+                        Дата заказа
 
-                            <label>
-                                Дата заказа
+                        <input
+                            type="date"
+                            name="order_date"
+                            value={form.order_date}
+                            onChange={handleChange}
+                            required
+                            disabled={saving}
+                        />
+                    </label>
 
-                                <input
-                                    type="date"
-                                    name="order_date"
-                                    value={form.order_date}
-                                    onChange={handleChange}
-                                    required
-                                    disabled={saving}
-                                />
-                            </label>
+                    <label>
+                        Сумма
 
-                            <label>
-                                Сумма
+                        <input
+                            type="number"
+                            name="amount"
+                            value={form.amount}
+                            onChange={handleChange}
+                            min="0"
+                            step="0.01"
+                            required
+                            disabled={saving}
+                        />
+                    </label>
 
-                                <input
-                                    type="number"
-                                    name="amount"
-                                    value={form.amount}
-                                    onChange={handleChange}
-                                    min="0"
-                                    step="0.01"
-                                    required
-                                    disabled={saving}
-                                />
-                            </label>
+                    <label>
+                        Количество
 
-                            <label>
-                                Количество
+                        <input
+                            type="number"
+                            name="quantity"
+                            value={form.quantity}
+                            onChange={handleChange}
+                            min="1"
+                            step="1"
+                            required
+                            disabled={saving}
+                        />
+                    </label>
 
-                                <input
-                                    type="number"
-                                    name="quantity"
-                                    value={form.quantity}
-                                    onChange={handleChange}
-                                    min="1"
-                                    step="1"
-                                    required
-                                    disabled={saving}
-                                />
-                            </label>
+                    <div className="modal-actions">
+                        <button
+                            type="button"
+                            className="secondary-button"
+                            onClick={closeModal}
+                            disabled={saving}
+                        >
+                            Отмена
+                        </button>
 
-                            <div className="modal-actions">
-                                <button
-                                    type="button"
-                                    className="secondary-button"
-                                    onClick={closeModal}
-                                    disabled={saving}
-                                >
-                                    Отмена
-                                </button>
-
-                                <button
-                                    type="submit"
-                                    className="primary-button"
-                                    disabled={
-                                        saving ||
-                                        customersLoading ||
-                                        customers.length === 0
-                                    }
-                                >
-                                    {saving
-                                        ? 'Сохранение...'
-                                        : 'Сохранить'}
-                                </button>
-                            </div>
-                        </form>
+                        <button
+                            type="submit"
+                            className="primary-button"
+                            disabled={saving || customersLoading || customers.length === 0}
+                        >
+                            {saving ? 'Сохранение...' : 'Сохранить'}
+                        </button>
                     </div>
-                </div>
-            )}
+                </form>
+            </div>
+        </div>)}
 
-            <ConfirmModal
-                open={Boolean(deleteTarget)}
-                title="Удалить заказ?"
-                message={
-                    deleteTarget
-                        ? `Вы действительно хотите удалить заказ №${deleteTarget.id}?`
-                        : ''
-                }
-                loading={deletingId !== null}
-                onCancel={() => setDeleteTarget(null)}
-                onConfirm={confirmDelete}
-            />
-        </>
-    )
+        <ConfirmModal
+            open={Boolean(deleteTarget)}
+            title="Удалить заказ?"
+            message={deleteTarget ? `Вы действительно хотите удалить заказ №${deleteTarget.id}?` : ''}
+            loading={deletingId !== null}
+            onCancel={() => setDeleteTarget(null)}
+            onConfirm={confirmDelete}
+        />
+    </>)
 }
 
 export default OrdersTable

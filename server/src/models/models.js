@@ -6,6 +6,7 @@ const Customers = sequelize.define('customers', {
         name: {type: DataTypes.STRING(30), allowNull: false,},
         registered_on: {type: DataTypes.DATEONLY, allowNull: false,},
         credit_limit: {type: DataTypes.DECIMAL(10, 2), allowNull: false,},
+        priority : {type: DataTypes.INTEGER, allowNull: false, defaultValue: 1},
 
     },
     {

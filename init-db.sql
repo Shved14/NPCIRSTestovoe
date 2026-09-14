@@ -10,7 +10,10 @@ CREATE TABLE customers (
     registered_on DATE NOT NULL,
 
     credit_limit NUMERIC(10, 2) NOT NULL
-        CHECK (credit_limit >= 0)
+        CHECK (credit_limit >= 0),
+
+    priority INTEGER NOT NULL DEFAULT 1
+        CHECK (priority >= 1)
 );
 
 
@@ -36,14 +39,22 @@ CREATE TABLE orders (
         ON DELETE RESTRICT
 );
 
+CREATE INDEX idx_orders_customer_id
+ON orders(customer_id);
 
-INSERT INTO customers (name, registered_on, credit_limit)
+
+INSERT INTO customers (
+    name,
+    registered_on,
+    credit_limit,
+    priority
+)
 VALUES
-    ('Иван Петров', '2026-08-15', 50000.00),
-    ('Анна Смирнова', '2026-08-20', 75000.00),
-    ('Дмитрий Иванов', '2026-08-25', 100000.00),
-    ('Елена Кузнецова', '2026-09-01', 30000.00),
-    ('Алексей Соколов', '2026-09-05', 120000.00);
+    ('Иван Петров', '2026-08-15', 50000.00, 1),
+    ('Анна Смирнова', '2026-08-20', 75000.00, 2),
+    ('Дмитрий Иванов', '2026-08-25', 100000.00, 1),
+    ('Елена Кузнецова', '2026-09-01', 30000.00, 3),
+    ('Алексей Соколов', '2026-09-05', 120000.00, 1);
 
 
 INSERT INTO orders (
