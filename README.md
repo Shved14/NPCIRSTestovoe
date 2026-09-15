@@ -616,13 +616,31 @@ npm run lint
 - При `SIGINT` / `SIGTERM` сервер закрывает HTTP server и соединение Sequelize.
 
 ---
-
 # Быстрый запуск
+PostgreSQL
 
-```bash
-# PostgreSQL
-psql -U postgres -c "CREATE DATABASE npcirs_test;" или & "C:\Program Files\PostgreSQL\16\bin\psql.exe" -U postgres -c "CREATE DATABASE npcirs_test;" в зависимости от версии
+```Создайте базу данных:
+
+psql -U postgres -c "CREATE DATABASE npcirs_test;"
+```
+
+```Затем выполните SQL-скрипт:
+
 psql -U postgres -d npcirs_test -f init-db.sql
+```
+#Windows
+Если команда psql не распознаётся, используйте полный путь к psql.exe:
+```
+& "C:\Program Files\PostgreSQL\16\bin\psql.exe" -U postgres -c "CREATE DATABASE npcirs_test;"
+```
+#Для выполнения init-db.sql:
+```
+$env:PGCLIENTENCODING="UTF8"
+& "C:\Program Files\PostgreSQL\16\bin\psql.exe" -U postgres -d npcirs_test -f .\init-db.sql
+```
+#Путь к psql.exe зависит от установленной версии PostgreSQL. Например, для PostgreSQL 17 путь будет C:\Program Files\PostgreSQL\17\bin\psql.exe.
+
+#Если при выполнении init-db.sql возникает ошибка кодировки WIN1251 / UTF8, установите PGCLIENTENCODING=UTF8 перед запуском SQL-скрипта.
 
 # Backend
 cd server
