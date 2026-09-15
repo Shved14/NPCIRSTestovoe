@@ -621,7 +621,7 @@ npm run lint
 
 ```bash
 # PostgreSQL
-psql -U postgres -c "CREATE DATABASE npcirs_test;"
+psql -U postgres -c "CREATE DATABASE npcirs_test;" или & "C:\Program Files\PostgreSQL\16\bin\psql.exe" -U postgres -c "CREATE DATABASE npcirs_test;" в зависимости от версии
 psql -U postgres -d npcirs_test -f init-db.sql
 
 # Backend
