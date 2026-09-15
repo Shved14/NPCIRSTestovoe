@@ -5,12 +5,8 @@ const ordersController = require('../controllers/ordersController')
 const validationMiddleware = require('../middleware/validationMiddleware')
 
 const {
-    orderIdValidation,
-    getAllOrdersValidation,
-    createOrderValidation,
-    updateOrderValidation,
-    }
-    = require('../validation/ordersValidation')
+    orderIdValidation, getAllOrdersValidation, createOrderValidation, updateOrderValidation,
+} = require('../validation/ordersValidation')
 
 router.post('/', createOrderValidation, validationMiddleware, ordersController.create)
 router.get('/', getAllOrdersValidation, validationMiddleware, ordersController.getAll)

@@ -5,12 +5,8 @@ const customersController = require('../controllers/customersController')
 const validationMiddleware = require('../middleware/validationMiddleware')
 
 const {
-    customerIdValidation,
-    getAllCustomersValidation,
-    createCustomerValidation,
-    updateCustomerValidation,
-    }
-    = require('../validation/customersValidation')
+    customerIdValidation, getAllCustomersValidation, createCustomerValidation, updateCustomerValidation,
+} = require('../validation/customersValidation')
 
 router.post('/', createCustomerValidation, validationMiddleware, customersController.create)
 router.get('/', getAllCustomersValidation, validationMiddleware, customersController.getAll)

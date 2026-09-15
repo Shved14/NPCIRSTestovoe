@@ -6,19 +6,11 @@ class OrdersController {
     async create(req, res, next) {
         try {
             const {
-                customer_id,
-                title,
-                order_date,
-                amount,
-                quantity,
+                customer_id, title, order_date, amount, quantity,
             } = req.body
 
             const order = await ordersModel.create({
-                customer_id,
-                title,
-                order_date,
-                amount,
-                quantity,
+                customer_id, title, order_date, amount, quantity,
             })
 
             return res.status(201).json(order)
@@ -29,19 +21,12 @@ class OrdersController {
 
     async getAll(req, res, next) {
         try {
-            const limit =
-                req.query.limit !== undefined
-                    ? Number(req.query.limit)
-                    : 100
+            const limit = req.query.limit !== undefined ? Number(req.query.limit) : 100
 
-            const offset =
-                req.query.offset !== undefined
-                    ? Number(req.query.offset)
-                    : 0
+            const offset = req.query.offset !== undefined ? Number(req.query.offset) : 0
 
             const orders = await ordersModel.getAll({
-                limit,
-                offset,
+                limit, offset,
             })
 
             return res.json(orders)
@@ -52,7 +37,7 @@ class OrdersController {
 
     async getById(req, res, next) {
         try {
-            const { id } = req.params
+            const {id} = req.params
 
             const order = await ordersModel.getById(id)
 
@@ -68,22 +53,14 @@ class OrdersController {
 
     async update(req, res, next) {
         try {
-            const { id } = req.params
+            const {id} = req.params
 
             const {
-                customer_id,
-                title,
-                order_date,
-                amount,
-                quantity,
+                customer_id, title, order_date, amount, quantity,
             } = req.body
 
             const order = await ordersModel.update(id, {
-                customer_id,
-                title,
-                order_date,
-                amount,
-                quantity,
+                customer_id, title, order_date, amount, quantity,
             })
 
             if (!order) {
@@ -98,7 +75,7 @@ class OrdersController {
 
     async delete(req, res, next) {
         try {
-            const { id } = req.params
+            const {id} = req.params
 
             const deleted = await ordersModel.delete(id)
 

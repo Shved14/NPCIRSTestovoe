@@ -5,16 +5,10 @@ const sequelize = require('../db/db')
 class CustomersModel {
 
     async create({
-                     name,
-                     registered_on,
-                     credit_limit,
-                     priority,
+                     name, registered_on, credit_limit, priority,
                  }) {
         return Customers.create({
-            name,
-            registered_on,
-            credit_limit,
-            priority,
+            name, registered_on, credit_limit, priority,
         })
     }
 
@@ -23,8 +17,7 @@ class CustomersModel {
     }
 
     async getAll({limit, offset}) {
-        const rows = await sequelize.query(
-            `
+        const rows = await sequelize.query(`
             SELECT
                 id,
                 name,
@@ -35,45 +28,30 @@ class CustomersModel {
             ORDER BY id ASC
             LIMIT :limit
             OFFSET :offset
-            `,
-            {
-                replacements: {
-                    limit,
-                    offset,
-                },
-                type: QueryTypes.SELECT,
-            }
-        )
+            `, {
+            replacements: {
+                limit, offset,
+            }, type: QueryTypes.SELECT,
+        })
 
-        const countRows = await sequelize.query(
-            `
+        const countRows = await sequelize.query(`
             SELECT COUNT(*) AS total
             FROM customers
-            `,
-            {
-                type: QueryTypes.SELECT,
-            }
-        )
+            `, {
+            type: QueryTypes.SELECT,
+        })
 
         const total = Number(countRows[0].total)
 
         return {
-            rows,
-            total,
+            rows, total,
         }
     }
 
-    async update(
-        id,
-        {
-            name,
-            registered_on,
-            credit_limit,
-            priority,
-        }
-    ) {
-        const rows = await sequelize.query(
-            `
+    async update(id, {
+        name, registered_on, credit_limit, priority,
+    }) {
+        const rows = await sequelize.query(`
             UPDATE customers
             SET
                 name = :name,
@@ -87,36 +65,25 @@ class CustomersModel {
                 registered_on,
                 credit_limit,
                 priority
-            `,
-            {
-                replacements: {
-                    id,
-                    name,
-                    registered_on,
-                    credit_limit,
-                    priority,
-                },
-                type: QueryTypes.SELECT,
-            }
-        )
+            `, {
+            replacements: {
+                id, name, registered_on, credit_limit, priority,
+            }, type: QueryTypes.SELECT,
+        })
 
         return rows[0] || null
     }
 
     async delete(id) {
-        const rows = await sequelize.query(
-            `
+        const rows = await sequelize.query(`
             DELETE FROM customers
             WHERE id = :id
             RETURNING id
-            `,
-            {
-                replacements: {
-                    id,
-                },
-                type: QueryTypes.SELECT,
-            }
-        )
+            `, {
+            replacements: {
+                id,
+            }, type: QueryTypes.SELECT,
+        })
 
         return rows.length > 0
     }

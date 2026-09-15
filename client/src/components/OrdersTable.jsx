@@ -1,10 +1,10 @@
-import {useCallback, useEffect, useMemo, useState,} from 'react'
+import {useCallback, useEffect, useMemo, useRef, useState,} from 'react'
 import {AgGridReact} from 'ag-grid-react'
-import {ClientSideRowModelModule, ModuleRegistry,} from 'ag-grid-community'
+import {ClientSideRowModelModule, ModuleRegistry, RowSelectionModule,} from 'ag-grid-community'
 
 import {getApiErrorMessage} from '../utils/apiError'
 
-ModuleRegistry.registerModules([ClientSideRowModelModule])
+ModuleRegistry.registerModules([ClientSideRowModelModule, RowSelectionModule])
 
 import api from '../api/api'
 import ConfirmModal from './ConfirmModal'
@@ -13,6 +13,9 @@ import ConfirmModal from './ConfirmModal'
 function OrdersTable({customersVersion}) {
     const [rowData, setRowData] = useState([])
     const [customers, setCustomers] = useState([])
+    const gridRef = useRef(null)
+    const [selectedOrder, setSelectedOrder] = useState(null)
+
 
     const [loading, setLoading] = useState(true)
     const [customersLoading, setCustomersLoading] = useState(true)
@@ -99,6 +102,20 @@ function OrdersTable({customersVersion}) {
         setDeleteTarget(order)
     }, [])
 
+
+    const handleEditSelected = useCallback(() => {
+        if (!selectedOrder) return
+
+        handleEdit(selectedOrder)
+    }, [selectedOrder, handleEdit])
+
+    const handleDeleteSelected = useCallback(() => {
+        if (!selectedOrder) return
+
+        handleDelete(selectedOrder)
+    }, [selectedOrder, handleDelete])
+
+
     const confirmDelete = useCallback(async () => {
         if (!deleteTarget) return
 
@@ -107,24 +124,31 @@ function OrdersTable({customersVersion}) {
 
         try {
             await api.delete(`/orders/${deleteTarget.id}`)
-
+            setSelectedOrder(null)
             await loadOrders()
-
             setDeleteTarget(null)
         } catch (error) {
             console.error('Ошибка удаления заказа:', error)
 
-            setTableError(getApiErrorMessage(error, 'Не удалось удалить заказ',),)
+            setDeleteTarget(null)
+            setTableError(getApiErrorMessage(error, 'Не удалось удалить заказ'))
         } finally {
             setDeletingId(null)
         }
     }, [deleteTarget, loadOrders])
 
+
+    const handleSelectionChanged = useCallback(() => {
+        const selectedRows = gridRef.current?.api.getSelectedRows() || []
+
+        setSelectedOrder(selectedRows[0] || null)
+    }, [])
+
     const columnDefs = useMemo(() => [{
         field: 'id', headerName: 'ID', width: 80,
     }, {
         field: 'customer_id', headerName: 'Покупатель', width: 180, valueGetter: (params) => {
-            const customer = customers.find((item) => item.id === params.data.customer_id,)
+            const customer = customers.find((item) => item.id === params.data.customer_id)
 
             return customer?.name || `ID ${params.data.customer_id}`
         },
@@ -136,31 +160,7 @@ function OrdersTable({customersVersion}) {
         field: 'amount', headerName: 'Сумма', width: 120,
     }, {
         field: 'quantity', headerName: 'Количество', width: 120,
-    }, {
-        headerName: 'Действия', width: 190, sortable: false, filter: false, cellRenderer: (params) => {
-            const isDeleting = deletingId === params.data?.id
-
-            return (<div className="table-actions">
-                <button
-                    type="button"
-                    className="table-button edit"
-                    onClick={() => handleEdit(params.data)}
-                    disabled={isDeleting}
-                >
-                    Изменить
-                </button>
-
-                <button
-                    type="button"
-                    className="table-button delete"
-                    onClick={() => handleDelete(params.data)}
-                    disabled={isDeleting}
-                >
-                    {isDeleting ? 'Удаление...' : 'Удалить'}
-                </button>
-            </div>)
-        },
-    }], [handleEdit, handleDelete, deletingId, customers,])
+    }], [])
 
     const openCreateModal = () => {
         if (customers.length === 0) {
@@ -241,6 +241,24 @@ function OrdersTable({customersVersion}) {
             >
                 + Добавить заказ
             </button>
+
+            <button
+                type="button"
+                className="secondary-button"
+                onClick={handleEditSelected}
+                disabled={!selectedOrder || deletingId !== null}
+            >
+                Изменить
+            </button>
+
+            <button
+                type="button"
+                className="secondary-button"
+                onClick={handleDeleteSelected}
+                disabled={!selectedOrder || deletingId !== null}
+            >
+                Удалить
+            </button>
         </div>
 
         {tableError && (<div className="table-error">
@@ -254,6 +272,19 @@ function OrdersTable({customersVersion}) {
             </button>
         </div>)}
 
+        {customersError && (<div className="table-status table-error">
+            <span>{customersError}</span>
+
+            <button
+                type="button"
+                className="retry-button"
+                onClick={loadCustomers}
+                disabled={customersLoading}
+            >
+                {customersLoading ? 'Загрузка...' : 'Повторить'}
+            </button>
+        </div>)}
+
         {loading && (<div className="table-status">
             Загрузка заказов...
         </div>)}
@@ -264,14 +295,16 @@ function OrdersTable({customersVersion}) {
 
         {!loading && !tableError && rowData.length > 0 && (<div className="ag-theme-quartz orders-grid">
             <AgGridReact
+                ref={gridRef}
                 columnDefs={columnDefs}
                 rowData={rowData}
-                defaultColDef={{
-                    sortable: true, resizable: true,
-                }}
+                rowSelection={{mode: 'singleRow',}}
+                onSelectionChanged={handleSelectionChanged}
+                defaultColDef={{sortable: false, resizable: true,}}
                 domLayout="autoHeight"
             />
         </div>)}
+
 
         {modalOpen && (<div className="modal-overlay">
             <div className="modal">
@@ -292,18 +325,6 @@ function OrdersTable({customersVersion}) {
 
                 {formError && (<div className="form-error">
                     {formError}
-                </div>)}
-
-                {customersError && (<div className="form-error">
-                    {customersError}
-
-                    <button
-                        type="button"
-                        className="retry-button"
-                        onClick={loadCustomers}
-                    >
-                        Повторить
-                    </button>
                 </div>)}
 
                 <form
@@ -342,7 +363,6 @@ function OrdersTable({customersVersion}) {
                             value={form.title}
                             onChange={handleChange}
                             maxLength={200}
-                            required
                             disabled={saving}
                         />
                     </label>

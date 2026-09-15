@@ -5,17 +5,11 @@ class CustomersController {
     async create(req, res, next) {
         try {
             const {
-                name,
-                registered_on,
-                credit_limit,
-                priority,
+                name, registered_on, credit_limit, priority,
             } = req.body
 
             const customer = await customersModel.create({
-                name,
-                registered_on,
-                credit_limit,
-                priority,
+                name, registered_on, credit_limit, priority,
             })
 
             return res.status(201).json(customer)
@@ -26,19 +20,12 @@ class CustomersController {
 
     async getAll(req, res, next) {
         try {
-            const limit =
-                req.query.limit !== undefined
-                    ? Number(req.query.limit)
-                    : 100
+            const limit = req.query.limit !== undefined ? Number(req.query.limit) : 100
 
-            const offset =
-                req.query.offset !== undefined
-                    ? Number(req.query.offset)
-                    : 0
+            const offset = req.query.offset !== undefined ? Number(req.query.offset) : 0
 
             const customers = await customersModel.getAll({
-                limit,
-                offset,
+                limit, offset,
             })
 
             return res.json(customers)
@@ -49,7 +36,7 @@ class CustomersController {
 
     async getById(req, res, next) {
         try {
-            const { id } = req.params
+            const {id} = req.params
 
             const customer = await customersModel.getById(id)
 
@@ -65,20 +52,14 @@ class CustomersController {
 
     async update(req, res, next) {
         try {
-            const { id } = req.params
+            const {id} = req.params
 
             const {
-                name,
-                registered_on,
-                credit_limit,
-                priority,
+                name, registered_on, credit_limit, priority,
             } = req.body
 
             const customer = await customersModel.update(id, {
-                name,
-                registered_on,
-                credit_limit,
-                priority,
+                name, registered_on, credit_limit, priority,
             })
 
             if (!customer) {
@@ -93,7 +74,7 @@ class CustomersController {
 
     async delete(req, res, next) {
         try {
-            const { id } = req.params
+            const {id} = req.params
 
             const deleted = await customersModel.delete(id)
 

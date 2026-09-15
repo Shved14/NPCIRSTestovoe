@@ -271,7 +271,7 @@ function CustomersTable({onCustomersChanged}) {
                 maxBlocksInCache={5}
                 onGridReady={onGridReady}
                 defaultColDef={{
-                    sortable: true, resizable: true,
+                    sortable: false, resizable: true,
                 }}
             />
         </div>

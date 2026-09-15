@@ -1,16 +1,16 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import {BrowserRouter, Routes, Route} from 'react-router-dom'
 import Layout from './layout/Layout.jsx'
 import Dashboard from './pages/Dashboard.jsx'
 
 function App() {
-  return(
-      <BrowserRouter>
+    return (<BrowserRouter>
         <Routes>
-          <Route path="/" element={<Layout/>}>
-            <Route index element={<Dashboard/>}/>
-          </Route>
+            <Route path="/" element={<Layout/>}>
+                <Route index element={<Dashboard/>}/>
+                <Route path="data" element={<Dashboard/>}/>
+            </Route>
         </Routes>
-      </BrowserRouter>
-  )
+    </BrowserRouter>)
 }
+
 export default App

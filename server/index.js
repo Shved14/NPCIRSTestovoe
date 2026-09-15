@@ -4,7 +4,6 @@ const app = require('./app.js')
 const sequelize = require('./src/db/db.js')
 require('./src/models/models.js')
 
-
 const PORT = process.env.PORT || 5000
 
 const start = async () => {
@@ -18,15 +17,14 @@ const start = async () => {
         })
 
         const shutdown = async (signal) => {
-            console.log(`${signal}Завершение работы сервера`)
+            console.log(`${signal}: Завершение работы сервера`)
 
-            server.close(async () =>{
-                try{
+            server.close(async () => {
+                try {
                     await sequelize.close()
                     console.log('Соединение с БД закрыто')
                     process.exit(0)
-                }
-                catch (error){
+                } catch (error) {
                     console.error('Ошибка при закрытии БД', error)
                     process.exit(1)
                 }
@@ -35,10 +33,8 @@ const start = async () => {
 
         process.on('SIGINT', () => shutdown('SIGINT'))
         process.on('SIGTERM', () => shutdown('SIGTERM'))
-
-
     } catch (error) {
-        console.error('Неудалось запустить сервер:', error)
+        console.error('Не удалось запустить сервер:', error)
         process.exit(1)
     }
 }

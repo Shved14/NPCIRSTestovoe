@@ -8,10 +8,7 @@ const errorHandlingMiddleware = require('./src/middleware/ErrorHandlingMiddlewar
 const notFoundMiddleware = require('./src/middleware/notFoundMiddleware')
 
 const apiLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 300,
-    standardHeaders: true,
-    legacyHeaders: false,
+    windowMs: 15 * 60 * 1000, max: 300, standardHeaders: true, legacyHeaders: false,
 })
 
 
@@ -23,12 +20,11 @@ app.use(helmet())
 
 
 app.use(cors({origin: process.env.CLIENT_URL}))
-app.use(express.json({ limit: '100kb'}))
+app.use(express.json({limit: '100kb'}))
 app.use('/api', apiLimiter)
 app.use('/api', routes)
 app.use(notFoundMiddleware)
 app.use(errorHandlingMiddleware)
-
 
 
 module.exports = app
